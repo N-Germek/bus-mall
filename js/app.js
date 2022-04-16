@@ -30,7 +30,7 @@ let results = document.getElementById('display-results');
 
 
 // constructor (the way you know it is a constructor is by the capital letter for the function name)
-function Product(name, fileExtension = 'jpg') {//the jpg is adding a default value using th3e last item in the list.
+function Product(name, fileExtension = 'jpg') {//the jpg is adding a default value using the last item in the list.
     //properties
     // name
     this.name = name;
@@ -77,34 +77,41 @@ function getRandomNumber() {
 }
 
 // render images. in one function maybe refractor 
+let uniqueProductIndexes = [];
 function renderImages() {
-    let uniqueProductIndexes = [];
 
-    while (uniqueProductIndexes.length < 3) {
+
+    while (uniqueProductIndexes.length < 6) {
         let num = getRandomNumber();
         while (uniqueProductIndexes.includes(num)) {
             num = getRandomNumber();
+            //console.log('duplicate hit:', num);
         }
-        uniqueProductIndexes.push(num);
+        uniqueProductIndexes.unshift(num);
     }
     console.log(uniqueProductIndexes);
 
-    imageOne.src = allProducts[uniqueProductIndexes[0]].src;
-    imageOne.alt = allProducts[uniqueProductIndexes[0]].name;
-    allProducts[uniqueProductIndexes[0]].views++;//this is a single object inside of an array.
+    let productIndexOne = uniqueProductIndexes.pop();
+    let productIndexTwo = uniqueProductIndexes.pop();
+    let productIndexThree = uniqueProductIndexes.pop();
+    // these steps will pop off the last three images then replace them with three new images.
 
-    imageTwo.src = allProducts[uniqueProductIndexes[1]].src;
-    imageTwo.alt = allProducts[uniqueProductIndexes[1]].name;
-    allProducts[uniqueProductIndexes[1]].views++;
+    imageOne.src = allProducts[productIndexOne].src;
+    imageOne.alt = allProducts[productIndexOne].name;
+    allProducts[productIndexOne].views++;//this is a single object inside of an array.
 
-    imageThree.src = allProducts[uniqueProductIndexes[2]].src;
-    imageThree.alt = allProducts[uniqueProductIndexes[2]].name;
-    allProducts[uniqueProductIndexes[2]].views++;
+    imageTwo.src = allProducts[productIndexTwo].src;
+    imageTwo.alt = allProducts[productIndexTwo].name;
+    allProducts[productIndexTwo].views++;
+
+    imageThree.src = allProducts[productIndexThree].src;
+    imageThree.alt = allProducts[productIndexThree].name;
+    allProducts[productIndexThree].views++;
 
 }
 //object Ojbect error means that you are doing objects wrong
 
-// event handler for image clicks
+// remember this is the event handler for image clicks
 function handleImageClick(event) {//sometimes will see eve in the spot of event.
     clicksMade++;//this is incrementing so that is counts the clicks
     let imageClicked = event.target.alt;// this is changing the image after one has been clicked.
@@ -118,14 +125,14 @@ function handleImageClick(event) {//sometimes will see eve in the spot of event.
     }
     renderImages();
 
-    if (clicksMade === ATTEMPTS_ALLOWED){
+    if (clicksMade === ATTEMPTS_ALLOWED) {
         imageContainer.removeEventListener('click', handleImageClick);
     }
 }
-// event handler for showning results
+// remember this is the event handler for showning results
 function handleResults(event) {
-    if (clicksMade === ATTEMPTS_ALLOWED){
-        for (let i = 0; i < allProducts.length; i++){
+    if (clicksMade === ATTEMPTS_ALLOWED) {
+        for (let i = 0; i < allProducts.length; i++) {
             let li = document.createElement('li');
             console.log(allProducts[i]);
             li.textContent = `${allProducts[i].name} had ${allProducts[i].votes} votes, and was seen ${allProducts[i].views} times.`;
@@ -134,29 +141,62 @@ function handleResults(event) {
     }
 }
 
-
-// executable code
 renderImages();
-// call the functions  to do the things???
-//
-
-// event listeners
+// here is the code for our chart after it has been removed from myChart const.
+let config = {
+    type: 'bar',
+    data: {
+        labels: `${allProducts.names}`,
+        datasets: [
+            {
+                label: '# of Votes',
+                data: [12, 19, 3, 5, 2, 3],
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 1
+            },
+            {
+                label: '# of Views',
+                data: [12, 19, 3, 5, 2, 3],
+                backgroundColor: 'rgba(153, 102, 255, 1)',
+                borderColor: 'rgba(75, 192, 192, 0.2)',
+                borderWidth: 1
+            }],
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    }
+}
+const ctx = document.getElementById('myChart').getContext('2d');
+const myChart = new Chart(ctx, config);
 // listen to section for image click
 imageContainer.addEventListener('click', handleImageClick);//this is the callback function entered as an argument to be called later.
 showResults.addEventListener('click', handleResults);
 
-// listen to 'div' button to show results 
 
+getStorageItems();
 
-// function Product(name) {
-// this.name = name;
-// this.img = name + '.jpg';
-// this.time_shown = 0;
+function getStorageItems() {
+  if (localStorage.getItem("allProducts")) {
+    let parseProducts = JSON.parse(localStorage.getItem("allProducts"))
+    console.log(parseProducts);
+    for (let i = 0; i < parseProducts.length; i++) {
+      let constructedProduct = new Product(parseProducts[i].name, parseProducts[i].path);
+      constructedProduct.votes = parseProducts[i].votes;
+      constructedProduct.views = parseProducts[i].views;
+      allProducts.push(constructedProduct)
+    }
+  } else {
+    instantiateProducts();
+  }
 
-// }
+}
 
-// let bag = new Product('bag');
-// console.log(bag);
-
-// let images = ['img/bag.jpg', 'img/banana.jpg', 'img/bathroom.jpg', 'img/boots.jpg', 'img/breakfast.jpg', 'img/bubblegum.jpg', 'img/chair.jpg', 'img/cthulhu.jpg', 'img/dog-duck.jpg', 'img/dragon.jpg', 'img/pen.jpg', 'img/pet-sweep.jpg', 'img/scissors.jpg', 'img/shark.jpg', 'img/tauntaun.jpg', 'img/unicorn.jpg', 'img/water-can.jpg'];
-// console.log(images);
+function saveToStorage() {
+  let productArrayStringified = JSON.stringify(allProducts);
+  localStorage.setItem('allProducts', productArrayStringified);
+}
