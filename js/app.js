@@ -176,3 +176,27 @@ const myChart = new Chart(ctx, config);
 // listen to section for image click
 imageContainer.addEventListener('click', handleImageClick);//this is the callback function entered as an argument to be called later.
 showResults.addEventListener('click', handleResults);
+
+
+getStorageItems();
+
+function getStorageItems() {
+  if (localStorage.getItem("allProducts")) {
+    let parseProducts = JSON.parse(localStorage.getItem("allProducts"))
+    console.log(parseProducts);
+    for (let i = 0; i < parseProducts.length; i++) {
+      let constructedProduct = new Product(parseProducts[i].name, parseProducts[i].path);
+      constructedProduct.votes = parseProducts[i].votes;
+      constructedProduct.views = parseProducts[i].views;
+      allProducts.push(constructedProduct)
+    }
+  } else {
+    instantiateProducts();
+  }
+
+}
+
+function saveToStorage() {
+  let productArrayStringified = JSON.stringify(allProducts);
+  localStorage.setItem('allProducts', productArrayStringified);
+}
